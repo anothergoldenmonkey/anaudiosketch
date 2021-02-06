@@ -1,2 +1,2 @@
-# anaudiosketch
+# AnAudioSketch
 Fooling around with audio
