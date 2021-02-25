@@ -1,82 +1,77 @@
-let canvas, sig, playButton, isSigPlaying, volumeSlider, freqSlider;
-let volumeText, freqText;
-let fft, barW;
+// p5.disableFriendlyErrors = true;
 
+let mCanvas;
+let timGrid;
+let mySignal;
+let volumeSlider, volumeText;
+let playButton;
 
 function setup() {
-    frameRate(FRAME_RATE);
-    canvas = createCanvas(WIDTH, HEIGHT);
-	canvas.parent('myCanvas');
+	getAudioContext().suspend();
+	setupVolumeElements();
+	setupPlayButton();
+	setupSignal();
 
-	sig = new p5.Oscillator('sine');
-	isSigPlaying = false;
-
-	fft = new p5.FFT(0.5, 512);
-	barW = (WIDTH - 2) / 128;
-	// Add DOM controller elements
-	playButton = createButton('play', 5);
-	playButton.mousePressed(togglePlay);
-
-	volumeText = createDiv('Volume');
-	volumeSlider = createSlider(0, 100, 80);
-
-	freqText = createDiv('Freq');
-	freqSlider = createSlider(1, 5000, 440);
-
-	playButton.parent('myPlay');
-	volumeText.parent('myVolume');
-	volumeSlider.parent('myVolume');
-	freqText.parent('myControllers');
-	freqSlider.parent('myControllers');
+	mCanvas = createCanvas(
+		windowWidth - WIDTH_OFFSET,
+		windowHeight - HEIGHT_OFFSET,
+	);
+	mCanvas.parent('myCanvas');
+	background(color(230, 230, 255))
+	timeGrid = new TimeGrid({
+		nLanes: 4, width: mCanvas.width - 8, height: (mCanvas.height / 2) - 8,
+		xCoord: 4, yCoord: 4, frameColour: color(128, 96, 128, 128),
+	});
 }
 
 function draw() {
-	clear();
-    // set background color
-    background(...BACKGROUND_COLOR);
-	updateDomElements();
-	sig.amp(map(volumeSlider.value(), 0, 100 , 0, 1), 0.1);
-	sig.freq(freqSlider.value(), 0.1);
-	stroke(0);
-	fill(0);
-	rect(1, 2* HEIGHT / 3, WIDTH -4 , (HEIGHT / 3) -2);
-	drawAnalysis();
-	drawCoolText();
+	timeGrid.render();
 }
 
-function togglePlay() {
-	if(isSigPlaying) {
-		playButton.html('play');
-		isSigPlaying = false;
-		sig.stop();
-	} else {
-		playButton.html('pause');
-		isSigPlaying = true;
-		sig.start();
-	}
+function windowResized() {
 }
 
-function updateDomElements() {
-	volumeText.html(`Volume: ${volumeSlider.value()}%`);
-	freqText.html(`Freq: ${freqSlider.value()}Hz`);
+function setupVolumeElements() {
+	volumeSlider = createSlider(0, 100, 50, .5);
+	volumeText = createP(`Volume: ${volumeSlider.value().toFixed(1)}`);
+
+	volumeText.parent('myVolume');
+	volumeSlider.parent('myVolume');
+
+	volumeSlider.input(()=>{
+		let curVol = volumeSlider.value();
+		if (curVol === 0 ) {
+			mySignal.amp(0, 0.05);
+		} else {
+			dbVol = map(curVol, 0.5, 100, volumeRangeDb[0], volumeRangeDb[1]);
+			mySignal.amp(pow(10, dbVol/20), 0.05);
+		}
+		volumeText.html(`Volume: ${curVol.toFixed(1)}`);
+	})
 }
 
-function drawAnalysis() {
-	spectrum = fft.analyze();
-	stroke(255);
-	for (let i = 0; i < spectrum.length / 4; i++) {
-		let band = spectrum[i];
-		let barH = map(band, 0, 255, HEIGHT - 2, (2 * HEIGHT / 3) + 2);
-		line(2+i*barW, HEIGHT - 2, i*barW, barH);
-	}
+function setupPlayButton() {
+	playButton = createButton('play');
+	playButton.parent('myPlay')
+
+	playButton.mouseReleased(() => {
+		if(mySignal.started) {
+			playButton.html('play');
+			mySignal.stop(0.25);
+		} else {
+			if(getAudioContext().state !== 'running') userStartAudio();
+			playButton.html('pause');
+			mySignal.start();
+		}
+	})
 }
 
-function drawCoolText() {
-	let txtStr = 'Something cool will be added here soon...';
-	stroke(190, 64, 128);
-	fill(128, 32, 128);
-	textStyle(BOLD);
-	textSize(24);
-	textAlign(CENTER);
-	text(txtStr, WIDTH / 2, 50)
+
+function setupSignal() {
+	mySignal = new p5.Oscillator('square');
+}
+
+function recalculateCanvasSize() {
+	// TODO: Calculate margin + nLanes * laneHeigh
+	resizeCanvas()
 }
