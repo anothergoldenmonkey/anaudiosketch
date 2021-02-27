@@ -19,8 +19,9 @@ function setup() {
 	mCanvas.parent('myCanvas');
 	background(color(230, 230, 255))
 	timeGrid = new TimeGrid({
-		nLanes: 4, width: mCanvas.width - 8, height: (mCanvas.height / 2) - 8,
-		xCoord: 4, yCoord: 4, frameColour: color(128, 96, 128, 128),
+		laneLenghtConfig:Array(3).fill(4), numBars: 4,
+		width: mCanvas.width - 8, height: (mCanvas.height / 2) - 8,
+		xCoord: 4, yCoord: 4,
 	});
 }
 

@@ -4,31 +4,61 @@ class Lane {
     _bar_width;
     _slot_width;
 
-    constructor(
-        {nBars, barLength, width, height, xCoord=0, yCoord=0, frameColour=color(128, 128, 128)},
-    ) {
-        if (nBars < 0 || nBars > MAX_N_BARS) {
+    constructor({nBars, barLength}) {
+        this.nBars =nBars
+        this.barLength = barLength;
+        this.width = null;
+        this.height = null;
+        this.xCoord = null;
+        this.yCoord = null;
+    }
+
+    get nBars() {
+        return this._nBars;
+    }
+
+    set nBars(nBars) {
+        if (nBars < 1 || nBars > MAX_N_BARS) {
             throw new Error(`Invalid number of bars: ${nbars}`);
         }
         this._nBars = nBars;
-        this._barLength = barLength;
-        this.width = width;
-        this.height = height;
-        this.xCoord = xCoord;
-        this.yCoord = yCoord;
-        this.frameColour = frameColour;
-        this._bar_width = (this.width - (this._nBars + 1) * BAR_MARGIN_WIDTH * 2) / this._nBars
-        this._slot_width = (this._bar_width - (this._barLength + 1) * BAR_MARGIN_WIDTH) / this._barLength;
+        this._calculate_slots_dimensions();
     }
 
-    get numBars() {
-        return this._nBars;
+    get barLength() {
+        return this._barLength;
+    }
+
+    set barLength(barLength) {
+        if (barLength < MIN_BAR_LENGTH || barLength > MAX_BAR_LENGTH) {
+            throw new Error(`Invalid bar length: ${barLength}`);
+        }
+        this._barLength = barLength;
+        this._calculate_slots_dimensions();
+    }
+
+    set coordinates({xCoord, yCoord}) {
+        this.xCoord = xCoord;
+        this.yCoord = yCoord;
+    }
+
+    set dimensions({width, height}) {
+        this.width = width;
+        this.height = height;
+        this._calculate_slots_dimensions();
+    }
+
+    _calculate_slots_dimensions(){
+        this._bar_width = (this.width - (this._nBars + 1) * BAR_MARGIN_WIDTH * 2) / this._nBars
+        this._slot_width = (
+            this._bar_width - (this._barLength + 1
+        ) * BAR_MARGIN_WIDTH) / this._barLength;
     }
 
     render() {
         strokeWeight(BAR_LINE_WIDTH);
         strokeJoin(ROUND);
-        fill(this.frameColour);
+        fill(FRAME_COLOUR);
         this._render_bars();
     }
 

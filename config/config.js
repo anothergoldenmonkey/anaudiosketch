@@ -16,6 +16,7 @@ const volumeRangeDb = [-48, 0];
 const MAX_N_LANES = 8;
 const FRAME_ROUNDNESS = 4;
 const FRAME_LINE_WIDTH = 2;
+const FRAME_COLOUR = [128, 96, 128, 128];
 
 // Lane constants
 const MAX_N_BARS = 4;
@@ -25,5 +26,7 @@ const LANE_MARGIN_HEIGTH = 4;
 const BAR_LINE_WIDTH = 1;
 
 // Bar constants
+const MIN_BAR_LENGTH = 2;
+const MAX_BAR_LENGTH = 16;
 const BAR_MARGIN_WIDTH = 4;
 const BAR_MARGIN_HEIGTH = 4;
