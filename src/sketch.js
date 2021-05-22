@@ -5,9 +5,12 @@ let timGrid;
 let mySignal;
 let volumeSlider, volumeText;
 let playButton;
+let lanesSlider, barDropDown, laneText, barText;
+let addLaneButton, removeLaneButton;
 
 function setup() {
 	getAudioContext().suspend();
+
 	setupVolumeElements();
 	setupPlayButton();
 	setupSignal();
@@ -16,6 +19,7 @@ function setup() {
 		windowWidth - WIDTH_OFFSET,
 		windowHeight - HEIGHT_OFFSET,
 	);
+
 	mCanvas.parent('myCanvas');
 	background(color(230, 230, 255))
 	timeGrid = new TimeGrid({
@@ -23,6 +27,8 @@ function setup() {
 		width: mCanvas.width - 8, height: (mCanvas.height / 2) - 8,
 		xCoord: 4, yCoord: 4,
 	});
+
+	setupGridControlElements(timeGrid);
 }
 
 function draw() {
@@ -75,4 +81,39 @@ function setupSignal() {
 function recalculateCanvasSize() {
 	// TODO: Calculate margin + nLanes * laneHeigh
 	resizeCanvas()
+}
+
+function setupGridControlElements(timeGrid) {
+	barText = createP('Bar size');
+	barText.parent('myGridCtl');
+
+	barDropDown = createSelect();
+	barDropDown.parent('myGridCtl');
+	barDropDown.option(2);
+	barDropDown.option(3);
+	barDropDown.option(4);
+	barDropDown.selected(4);
+	barDropDown.changed(() => timeGrid.numBars = int(barDropDown.value()));
+
+	laneText= createP('Lanes');
+	laneText.parent('myGridCtl');
+
+	lanesSlider = createSlider(2, 16, 4, 1);
+	lanesSlider.parent('myGridCtl');
+
+	addLaneButton = createButton(`Add lane: ${lanesSlider.value()} beats`);
+	addLaneButton.parent('myGridCtl');
+
+	lanesSlider.input(()=>{
+		addLaneButton.html(`Add lane: ${lanesSlider.value()} beats`);
+	});
+
+	addLaneButton.mouseReleased(() => {
+		timeGrid.addLanes({laneLenghtConfig: [int(lanesSlider.value())]})
+	});
+
+	// TODO: Select which lane to remove
+	removeLaneButton = createButton('remove last lane');
+	removeLaneButton.parent('myGridCtl');
+	removeLaneButton.mouseReleased(() => timeGrid.removeLanes({}));
 }

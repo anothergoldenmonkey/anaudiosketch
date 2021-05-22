@@ -10,7 +10,7 @@ class TimeGrid {
         if (laneLenghtConfig.length < 0 || laneLenghtConfig.length > MAX_N_LANES) {
             throw new Error(`Invalid number of lanes: ${laneLenghtConfig.length}`);
         }
-        this.numLanes = laneLenghtConfig.length;
+        this._numLanes = laneLenghtConfig.length;
         this._numBars = numBars;
         this.width = width;
         this.height = height;
@@ -28,6 +28,23 @@ class TimeGrid {
         this._lanes.forEach(lane => lane.nBars = nBars);
     }
 
+    get numBars() {
+        return this._numBars;
+    }
+
+    set numLanes(nLanes) {
+        if (nLanes > this._numLanes) {
+            this.addLanes(nLanes - this._numLanes);
+        }
+        else if (nLanes < this._numLanes) {
+            this.removeLanes(this._numLanes - nLanes);
+        }
+    }
+
+    get numLanes() {
+        return this._numLanes;
+    }
+
     _init_sound_part() {
         let minSteps = this._lanes.reduce(
             (numSteps, lane) => lcm2(lane.barLength, numSteps), 1
@@ -36,7 +53,7 @@ class TimeGrid {
     }
 
     _init_lanes(laneLenghtConfig) {
-        this._lanes = Array(this.numLanes).fill().map(
+        this._lanes = Array(this._numLanes).fill().map(
             (_, i) => new Lane({nBars: this._numBars, barLength: laneLenghtConfig[i]})
         );
         this._calculate_lane_coordinates();
@@ -45,7 +62,7 @@ class TimeGrid {
     _calculate_lane_coordinates() {
         let laneWidth = this.width - LANE_MARGIN_WIDTH * 2;
         let laneHeigth = (
-            (this.height - ((this.numLanes + 1) * LANE_MARGIN_HEIGTH)) / this.numLanes
+            (this.height - ((this._numLanes + 1) * LANE_MARGIN_HEIGTH)) / this._numLanes
         );
 
         this._lanes.forEach((lane, index) => {
@@ -59,12 +76,15 @@ class TimeGrid {
     }
 
     addLanes({laneLenghtConfig=[4], startIndex=-1}){
+        if (laneLenghtConfig.constructor !== Array) {
+            throw new Error(`laneLenghtConfig must be an array`)
+        }
+
         const nNewLanes = laneLenghtConfig.length;
-        if (nNewLanes < 0 || (this.numLanes + nNewLanes) > MAX_N_LANES) {
+        if (nNewLanes < 0 || (this._numLanes + nNewLanes) > MAX_N_LANES) {
             console.log(`Got invalid number of lanes: ${nNewLanes}`)
             return;
         }
-        console.log(laneLenghtConfig)
         if(startIndex < 0) {
             this._lanes = this._lanes.concat(
                 Array(nNewLanes).fill().map(
@@ -81,7 +101,7 @@ class TimeGrid {
                 );
             }
         }
-        this.numLanes += nNewLanes;
+        this._numLanes += nNewLanes;
         this._calculate_lane_coordinates();
     }
 
@@ -90,13 +110,13 @@ class TimeGrid {
             console.log(`invalid start index to remove lanes: ${startIndex}.`)
             return;
         }
-        if (count < 1 || this.numLanes - count < 1) {
+        if (count < 1 || this._numLanes - count < 1) {
             console.log(`invalid number or lanes to remove: ${count}.`)
             return;
         }
         let start = startIndex >=0 ? startIndex : count * -1;
         this._lanes.splice(start, count);
-        this.numLanes -= count;
+        this._numLanes -= count;
         this._calculate_lane_coordinates();
     }
 
